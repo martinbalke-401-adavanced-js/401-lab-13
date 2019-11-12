@@ -43,11 +43,9 @@ async function bearerAuth(token) {
 
   try {
     data = jwt.verify(token, secret);
-    console.log(data);
   } catch (e) {
     return { err: e.name };
   }
-
   if (data.id) return await users.get(data.id);
   else return { err: 'User not found' };
 }
@@ -72,7 +70,6 @@ module.exports = async (req, res, next) => {
 
   if (authType == 'Basic') user = await basicAuth(encodedData);
   else if (authType == 'Bearer') user = await bearerAuth(encodedData);
-
   if (user && user._id) {
     //timeout is passed as a variable to token generation
     let token = 'Bearer ' + user.generateToken(timeout);

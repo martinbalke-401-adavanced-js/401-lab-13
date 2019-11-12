@@ -14,11 +14,10 @@ const users = new mongoose.Schema({
   password: { type: String, required: true },
   email: { type: String },
   role: { type: String, default: 'user', enum: ['admin', 'editor', 'user'] },
-});
+}, {toObject: {virtuals: true}, toJSON: {virtuals: true}},
+);
 
-// === TODO: Implement a virtual connection between users and roles, so that we can access
-// === user capabilities easily =====
-// === Utilize virtuals and the populate() mongoose method ===
+// Creates virtual property on the users collection which populates permissions with more useful data about the role
 users.virtual('permissions', {
   ref: 'roles',
   localField: 'role',
@@ -26,15 +25,12 @@ users.virtual('permissions', {
   justOne: false,
 });
 
-
-users.post('findOne', async function (user) {
-  await user.populate('permissions');
+//Post middleware after a find populates the permissions virtual
+users.post('find', async function (user) {
+  await user[0].populate('permissions').execPopulate();
 });
 
-users.methods.can = function(string) {
-  if(this.permissions.includes(string)) return true;
-  return false;
-};
+
 
 /**
  * Pre middleware which converts a string password into a hashed password before every save to MongoDB
@@ -51,9 +47,9 @@ users.pre('save', async function() {
  */
 users.statics.authenticateBasic = async function(auth) {
   let query = { username: auth.username };
-  let foundUser = await this.findOne(query);
+  let foundUser = await this.find(query);
+  foundUser = foundUser[0];
   let isSamePassword = null;
-  console.log(foundUser);
 
   if (foundUser)
     isSamePassword = await bcrypt.compare(auth.password, foundUser.password);
@@ -75,6 +71,17 @@ users.methods.generateToken = function(timeout) {
     id: this._id,
   };
   return jwt.sign(data, secret, {expiresIn: timeout});
+};
+
+/**
+ * Method Can verifies if a user is able to use a given permission
+ * @param {string} permission - the permission you are checking if the user has
+ * @return {boolean} - true or false if the user has the given permission
+ */
+users.methods.can = function (permission) {
+  let userCapabilities = this.permissions[0].capabilities;
+  if (userCapabilities.includes(permission)) return true;
+  return false;
 };
 
 /**
