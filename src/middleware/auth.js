@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
  * @return {object}               An object containing the decoded, plain-text username and password
  */
 function basicDecode(authString) {
+
   let base64Buffer = Buffer.from(authString, 'base64'); // base64 buffer conversion of string
   let bufferString = base64Buffer.toString(); // conversion from base64 buffer back to string
   let [username, password] = bufferString.split(':'); // split string using delimiter : to get pieces
@@ -38,11 +39,11 @@ async function basicAuth(encodedCredentials) {
 async function bearerAuth(token) {
   let secret = process.env.SECRET || 'this-is-my-secret';
   let data;
-
   // === TODO: Update the below code when you implement timed JWT ===
 
   try {
     data = jwt.verify(token, secret);
+    console.log(data);
   } catch (e) {
     return { err: e.name };
   }
@@ -58,8 +59,10 @@ async function bearerAuth(token) {
  * @param  {Function} next  This is what we use to either go to the next middleware or endpoint for our route, or to go to some error handling middleware
  */
 module.exports = async (req, res, next) => {
+  //Regular token timeout is 1 hour unless the user specifies 5 seconds
+  let timeout = '1h';
+  if(req.headers.timeout === 'true') timeout = '5s';
   let auth, authType, encodedData, user;
-
   if (req.headers.authorization) auth = req.headers.authorization.split(/\s+/);
 
   if (auth && auth.length == 2) {
@@ -71,7 +74,8 @@ module.exports = async (req, res, next) => {
   else if (authType == 'Bearer') user = await bearerAuth(encodedData);
 
   if (user && user._id) {
-    let token = 'Bearer ' + user.generateToken();
+    //timeout is passed as a variable to token generation
+    let token = 'Bearer ' + user.generateToken(timeout);
     req.user = user;
     req.token = token;
     next();

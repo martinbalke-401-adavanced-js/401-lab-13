@@ -22,6 +22,6 @@
     "quotes": ["error", "single", { "allowTemplateLiterals": true }],
     "comma-dangle": ["error", "always-multiline"],
     "semi": ["error", "always"],
-    "no-unused-vars": [1, { "vars": "local", "args": "none" }]
+    "no-unused-vars": [0, { "vars": "local", "args": "none" }]
   }
 }

@@ -3,6 +3,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const roles = require('./roles-schema');
 
 /**
  * The schema definition for a user record
@@ -18,9 +19,22 @@ const users = new mongoose.Schema({
 // === TODO: Implement a virtual connection between users and roles, so that we can access
 // === user capabilities easily =====
 // === Utilize virtuals and the populate() mongoose method ===
+users.virtual('permissions', {
+  ref: 'roles',
+  localField: 'role',
+  foreignField: 'role',
+  justOne: false,
+});
 
-// === TODO: Implement a methods function can() which takes a string and returns true/false if
-// === the user has that capability ===
+
+users.post('findOne', async function (user) {
+  await user.populate('permissions');
+});
+
+users.methods.can = function(string) {
+  if(this.permissions.includes(string)) return true;
+  return false;
+};
 
 /**
  * Pre middleware which converts a string password into a hashed password before every save to MongoDB
@@ -39,6 +53,7 @@ users.statics.authenticateBasic = async function(auth) {
   let query = { username: auth.username };
   let foundUser = await this.findOne(query);
   let isSamePassword = null;
+  console.log(foundUser);
 
   if (foundUser)
     isSamePassword = await bcrypt.compare(auth.password, foundUser.password);
@@ -50,18 +65,16 @@ users.statics.authenticateBasic = async function(auth) {
 /**
  * This function generates a JSON Web Token from a user's id, role and the application's secret
  * Because this is a methods function, `this` refers to an individual user record
+ * @param {string} timeout - The amount of time for a token to expire in
  * @return {string} The generated jwt token
  */
-// === TODO implement timeout functionality for this token ====
-// === You can have your code pass generateToken a flag that ===
-// === sets a long or short (5 sec) timeout ===
-users.methods.generateToken = function() {
+
+users.methods.generateToken = function(timeout) {
   let secret = process.env.SECRET || 'this-is-my-secret';
   let data = {
     id: this._id,
   };
-
-  return jwt.sign(data, secret);
+  return jwt.sign(data, secret, {expiresIn: timeout});
 };
 
 /**
