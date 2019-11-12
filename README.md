@@ -7,7 +7,7 @@
 ### Links and Resources
 * [submission PR](http://xyz.com)
 * [travis](http://xyz.com)
-* [front-end](http://xyz.com) (when applicable)
+* [front-end / Heroku](https://martin-lab-13.herokuapp.com/)
 
 
 
