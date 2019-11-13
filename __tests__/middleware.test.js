@@ -36,18 +36,20 @@ let roles = {
 };
 
 beforeAll(async done => {
+  let usersDB = new Users();
+  let rolesDB = new Roles();
   await startDB();
-  const admin = await new Users(users.admin).save();
-  const editor = await new Users(users.editor).save();
-  const user = await new Users(users.user).save();
-  const adminRole = await new Roles(roles.admin).save();
-  const editorRole = await new Roles(roles.editor).save();
-  const userRole = await new Roles(roles.user).save();
+  await usersDB.create(users.admin);
+  await usersDB.create(users.editor);
+  await usersDB.create(users.user);
+  await rolesDB.create(roles.admin);
+  await rolesDB.create(roles.editor);
+  await rolesDB.create(roles.user);
   done();
 });
 
 afterAll(stopDB);
 
 /* describe('xxx', () => {
-  it('xxx', () => { }); 
+  it('xxx', () => { });
 }); */

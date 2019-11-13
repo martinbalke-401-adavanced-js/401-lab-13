@@ -39,7 +39,7 @@ async function basicAuth(encodedCredentials) {
 async function bearerAuth(token) {
   let secret = process.env.SECRET || 'this-is-my-secret';
   let data;
-  // === TODO: Update the below code when you implement timed JWT ===
+
 
   try {
     data = jwt.verify(token, secret);

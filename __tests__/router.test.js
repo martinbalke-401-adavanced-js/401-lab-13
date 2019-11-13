@@ -41,15 +41,16 @@ let roles = {
 };
 
 beforeAll(async done => {
+  let rolesDB = new Roles();
   await supertester.startDB();
-  const admin = await new Roles(roles.admin).save();
-  const editor = await new Roles(roles.editor).save();
-  const user = await new Roles(roles.user).save();
+  await rolesDB.create(roles.admin);
+  await rolesDB.create(roles.editor);
+  await rolesDB.create(roles.user);
   done();
 });
 
 afterAll(supertester.stopDB);
 
-/* describe('xxx', () => {
-  it('xxx', () => { }); 
-}); */
+describe('routes testing', () => {
+  it('Unathenticated users can only access public', () => { });
+}); 

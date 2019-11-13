@@ -17,7 +17,9 @@ const users = new mongoose.Schema({
 }, {toObject: {virtuals: true}, toJSON: {virtuals: true}},
 );
 
-// Creates virtual property on the users collection which populates permissions with more useful data about the role
+/**
+ *Creates a virtual property on the users collection which populates permissions with more useful data about the role
+ */
 users.virtual('permissions', {
   ref: 'roles',
   localField: 'role',
@@ -25,7 +27,9 @@ users.virtual('permissions', {
   justOne: false,
 });
 
-//Post middleware after a find populates the permissions virtual
+/**
+ *Post middleware after a find populates the permissions virtual
+ */
 users.post('find', async function (user) {
   await user[0].populate('permissions').execPopulate();
 });
